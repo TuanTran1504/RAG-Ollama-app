@@ -20,6 +20,7 @@ services:
   app:
     build:
       context: ./app
+    image: docker-rag_app
     container_name: rag-app
     ports:
       - "5000:5000"
@@ -27,6 +28,8 @@ services:
       - ollama
     environment:
       - OLLAMA_API_URL=http://ollama:11434
+    volumes:
+      - ./app:/app
     deploy:
       resources:
         reservations:

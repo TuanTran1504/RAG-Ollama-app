@@ -102,7 +102,7 @@ def retrieve(state):
 
  
     embedding_model = HuggingFaceEmbeddings(
-            model_name="nlpaueb/legal-bert-base-uncased",
+            model_name="all-MiniLM-L6-v2",
             model_kwargs={"device": "cuda"}#Moves model to GPU
         )
     index = faiss.IndexFlatL2(len(embedding_model.embed_query("hello world")))
@@ -134,7 +134,7 @@ def generate(state):
     loop_step = state.get("loop_step", 0)
     rag_prompt = """You are a legal advisor and an assistant for question-answering tasks related to any legislation concern
     
-    Based strictly on the provided context, answer the query in a clear, accurate, and concise manner.
+    Answer the query in a clear, accurate, and concise manner.
     Here is the context to use to answer the question:
 
     {context} 
@@ -148,17 +148,62 @@ def generate(state):
     Provide an answer to this questions using only the above context
     
     Responses should be short and direct, delivering the necessary information without filler.
+    If the question is broad, please provide a more general answer
 
     Answer:"""
 
 
-    #print(documents)
     # RAG generation
     docs_txt = format_docs(documents)
     rag_prompt_formatted = rag_prompt.format(context=docs_txt, question=question)
     generation = llm.invoke([HumanMessage(content=rag_prompt_formatted)])
     return {"generation": generation, "loop_step": loop_step + 1}
+def generate_normal(state):
+    """
+    Generate answer using RAG on retrieved documents
 
+    Args:
+        state (dict): The current graph state
+
+    Returns:
+        state (dict): New key added to state, generation, that contains LLM generation
+    """
+    print("---GENERATE---")
+    question = state["question"]
+    loop_step = state.get("loop_step", 0)
+
+    generation = llm.invoke(question)
+    return {"generation": generation, "loop_step": loop_step + 1, "documents":None}
+
+def route_question(state):
+    """
+    Route question to web search or RAG
+
+    Args:
+        state (dict): The current graph state
+
+    Returns:
+        str: Next node to call
+    """
+
+    print("---ROUTE QUESTION---")
+    router_instructions = """You are an expert at routing a user question to a vectorstore or not.
+
+    The vectorstore contains documents related to Tasmanian Legislation.
+
+
+    Return JSON with single key, datasource, that is 'vectorstore' or 'normal' depending on the query if it needs the aditional knowledge from the vectorstore or not"""
+
+    route_question = llm_json_mode.invoke(
+        [SystemMessage(content=router_instructions)]
+        + [HumanMessage(content=state["question"])]
+    )
+    source = json.loads(route_question.content)["datasource"]
+    if source == "vectorstore":
+        return "retrieve"
+    elif source == "normal":
+        return "generate_normal"
+    
 def grade_documents(state):
     """
     Determines whether the retrieved documents are relevant to the question

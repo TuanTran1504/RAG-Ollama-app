@@ -37,6 +37,7 @@ legal-rag-ollama/
 
 - Docker Engine (with NVIDIA GPU support)
 - NVIDIA GPU + [nvidia-container-toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html) installed
+- Tavily API https://app.tavily.com/
 
 ---
 
@@ -55,12 +56,14 @@ legal-rag-ollama/
    docker exec -it ollama ollama pull llama3
    ```
 
-3. **Start the full app**
+3. Add API key in ".env" file
+
+4. **Start the full app**
    ```bash
    docker compose --compatibility up --build
    ```
 
-4. **Open your browser**
+5. **Open your browser**
    Visit [http://localhost:5000](http://localhost:5000)  
    Ask a legal question (e.g. about a Tasmanian Act)
 
@@ -80,7 +83,7 @@ The model will retrieve relevant sections, reason over them, and return a concis
 - Uses `LangGraph` to route, grade, and retry RAG responses
 - FAISS + BM25 combined for hybrid retrieval
 - Model used: `llama3:latest` via Ollama (configurable)
-
+- Fallback method using Web Search(Tavily) when question is out of context or can not retrieve relevant documents
 
 
 ---
