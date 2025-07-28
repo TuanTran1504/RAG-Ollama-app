@@ -1,6 +1,6 @@
 # 🧠 Legal RAG Ollama
 
-A Retrieval-Augmented Generation (RAG) application that allows users to ask legal questions based on Tasmanian legislation using a custom LangChain pipeline and an Ollama-hosted LLM (e.g., LLaMA 3). Includes a simple Flask web interface.
+A Retrieval-Augmented Generation (RAG) application that allows users to ask legal questions based on Tasmanian legislation using a custom LangChain pipeline and an Ollama-hosted LLM (e.g., LLaMA 3). Includes a simple Flask web interface. (this can be customed to answer any domain you need)
 
 ---
 
