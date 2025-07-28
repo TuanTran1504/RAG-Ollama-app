@@ -1,0 +1,30 @@
+name: rag-env
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - numpy
+  - pandas
+  - faiss-gpu
+  - pip
+  - pip:
+      - flask
+      - langchain
+      - torch
+      - torchvision
+      - torchaudio
+      - langgraph
+      - langchain-community
+      - langchain-openai
+      - huggingface-hub
+      - transformers
+      - sentence-transformers
+      - tavily-python
+      - typing-extensions
+      - langchain-huggingface
+      - langchain-ollama
+      - langchain-tavily
+      - ragas
+      - jq
+      - rank_bm25

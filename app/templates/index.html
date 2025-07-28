@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Legal RAG App</title>
+</head>
+<body>
+    <h2>Ask a Legal Question</h2>
+    <form method="POST">
+        <textarea name="question" rows="4" cols="60" placeholder="Enter your legal question...">{{ question }}</textarea><br><br>
+        <button type="submit">Ask</button>
+    </form>
+
+    {% if answer %}
+        <h3>Answer:</h3>
+        <p>{{ answer }}</p>
+    {% endif %}
+</body>
+</html>
