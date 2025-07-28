@@ -25,6 +25,6 @@ dependencies:
       - langchain-huggingface
       - langchain-ollama
       - langchain-tavily
-      - ragas
       - jq
       - rank_bm25
+      - python-dotenv

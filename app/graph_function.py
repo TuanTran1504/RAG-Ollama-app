@@ -39,7 +39,7 @@ from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
 import os
 
-load_dotenv()  # 👈 Loads .env into environment
+load_dotenv()  
 
 tavily_key = os.getenv("TAVILY_KEY")
 os.environ["TAVILY_API_KEY"] = tavily_key
@@ -239,44 +239,17 @@ def web_search(state):
         docs = [docs]
 
     # 🧼 Step 3: Extract content only
-    web_results = "\n".join([d["content"] for d in docs if "content" in d])
+    new_documents = [
+        Document(page_content=d["content"], metadata={"source": d.get("url", "unknown")})
+        for d in docs if "content" in d
+    ]
 
-    # 📄 Step 4: Wrap in LangChain Document
-    documents = Document(page_content=web_results)
+    # Append to existing documents
+    documents.extend(new_documents)
+
 
     return {"documents": documents}
 
-# def route_question(state):
-#     """
-#     Route question to web search or RAG
-
-#     Args:
-#         state (dict): The current graph state
-
-#     Returns:
-#         str: Next node to call
-#     """
-
-#     print("---ROUTE QUESTION---")
-#     router_instructions = """You are an expert at routing a user question to a vectorstore or web search.
-
-#     The vectorstore1 contains documents related to Western Sydney University International College.
-
-#     Use the vectorstore2 for questions related to  Western Sydney University (not International College).
-
-#     Return JSON with single key, datasource, that is 'vectorstore1' or 'vectorstore2' depending on the question."""
-
-#     route_question = llm_json_mode.invoke(
-#         [SystemMessage(content=router_instructions)]
-#         + [HumanMessage(content=state["question"])]
-#     )
-#     source = json.loads(route_question.content)["datasource"]
-#     if source == "vectorstore1":
-#         print("---ROUTE QUESTION TO WSUIC DATABASE---")
-#         return "retrieve"
-#     elif source == "vectorstore2":
-#         print("---ROUTE QUESTION TO WSU DATABASE---")
-#         return "retrieve2"
 
 def decide_to_generate(state):
     """
@@ -306,107 +279,3 @@ def decide_to_generate(state):
         print("---DECISION: GENERATE---")
         return "generate"
 
-# def grade_generation_v_documents_and_question(state):
-#     """
-#     Determines whether the generation is grounded in the document and answers question
-
-#     Args:
-#         state (dict): The current graph state
-
-#     Returns:
-#         str: Decision for next node to call
-#     """
-
-#     print("---CHECK HALLUCINATIONS---")
-#     question = state["question"]
-#     documents = state["documents"]
-#     generation = state["generation"]
-#     max_retries = state.get("max_retries", 3)  # Default to 3 if not provided
-#     hallucination_grader_instructions = """
-
-#     You are a teacher grading a quiz. 
-
-#     You will be given FACTS and a STUDENT ANSWER. 
-
-#     Here is the grade criteria to follow:
-
-#     (1) Ensure the STUDENT ANSWER is grounded in the FACTS. 
-
-#     (2) Ensure the STUDENT ANSWER does not contain "hallucinated" information outside the scope of the FACTS.
-
-#     Score:
-
-#     A score of yes means that the student's answer meets all of the criteria. This is the highest (best) score. 
-
-#     A score of no means that the student's answer does not meet all of the criteria. This is the lowest possible score you can give.
-
-#     Explain your reasoning in a step-by-step manner to ensure your reasoning and conclusion are correct. 
-
-#     Avoid simply stating the correct answer at the outset."""
-
-#     # Grader prompt
-#     hallucination_grader_prompt = """FACTS: \n\n {documents} \n\n STUDENT ANSWER: {generation}. 
-
-#     Return JSON with two two keys, binary_score is 'yes' or 'no' score to indicate whether the STUDENT ANSWER is grounded in the FACTS. And a key, explanation, that contains an explanation of the score."""
-#     answer_grader_instructions = """You are a teacher grading a quiz. 
-
-#     You will be given a QUESTION and a STUDENT ANSWER. 
-
-#     Here is the grade criteria to follow:
-
-#     (1) The STUDENT ANSWER helps to answer the QUESTION
-
-#     Score:
-
-#     A score of yes means that the student's answer meets all of the criteria. This is the highest (best) score. 
-
-#     The student can receive a score of yes if the answer contains extra information that is not explicitly asked for in the question.
-
-#     A score of no means that the student's answer does not meet all of the criteria. This is the lowest possible score you can give.
-
-#     Explain your reasoning in a step-by-step manner to ensure your reasoning and conclusion are correct. 
-
-#     Avoid simply stating the correct answer at the outset."""
-
-#     # Grader prompt
-#     answer_grader_prompt = """QUESTION: \n\n {question} \n\n STUDENT ANSWER: {generation}. 
-
-#     Return JSON with two two keys, binary_score is 'yes' or 'no' score to indicate whether the STUDENT ANSWER meets the criteria. And a key, explanation, that contains an explanation of the score."""
-#     hallucination_grader_prompt_formatted = hallucination_grader_prompt.format(
-#         documents=format_docs(documents), generation=generation.content
-#     )
-#     result = llm_json_mode.invoke(
-#         [SystemMessage(content=hallucination_grader_instructions)]
-#         + [HumanMessage(content=hallucination_grader_prompt_formatted)]
-#     )
-#     grade = json.loads(result.content)["binary_score"]
-
-#     # Check hallucination
-#     if grade == "yes":
-#         print("---DECISION: GENERATION IS GROUNDED IN DOCUMENTS---")
-#         # Check question-answering
-#         print("---GRADE GENERATION vs QUESTION---")
-#         # Test using question and generation from above
-#         answer_grader_prompt_formatted = answer_grader_prompt.format(
-#             question=question, generation=generation.content
-#         )
-#         result = llm_json_mode.invoke(
-#             [SystemMessage(content=answer_grader_instructions)]
-#             + [HumanMessage(content=answer_grader_prompt_formatted)]
-#         )
-#         grade = json.loads(result.content)["binary_score"]
-#         if grade == "yes":
-#             print("---DECISION: GENERATION ADDRESSES QUESTION---")
-#             return "useful"
-#         elif state["loop_step"] <= max_retries:
-#             print("---DECISION: GENERATION DOES NOT ADDRESS QUESTION---")
-#             return "not useful"
-#         else:
-#             print("---DECISION: MAX RETRIES REACHED---")
-#             return "max retries"
-#     elif state["loop_step"] <= max_retries:
-#         print("---DECISION: GENERATION IS NOT GROUNDED IN DOCUMENTS, RE-TRY---")
-#         return "not supported"
-#     else:
-#         print("---DECISION: MAX RETRIES REACHED---")
-#         return "max retries"

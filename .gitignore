@@ -10,3 +10,6 @@ __init__.py
 *.sqlite3
 .conda/
 .venv/
+graph_function2.py
+tavily_test.py
+testenv/
