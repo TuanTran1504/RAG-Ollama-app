@@ -13,3 +13,4 @@ __init__.py
 graph_function2.py
 tavily_test.py
 testenv/
+.gitignore
