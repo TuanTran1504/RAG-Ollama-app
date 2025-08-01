@@ -45,8 +45,8 @@ legal-rag-ollama/
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/legal-rag-ollama.git
-   cd legal-rag-ollama
+   git clone https://github.com/TuanTran1504/RAG-Ollama-app
+   cd RAG-Ollama-app
    ```
 
 2. **Pull the model inside Ollama container**
